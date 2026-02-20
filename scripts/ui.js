@@ -13,6 +13,10 @@ const exportJsonBtn = document.getElementById("exportJsonBtn");
 const importJsonBtn = document.getElementById("importJsonBtn");
 const importJsonInput = document.getElementById("importJsonInput");
 const importExportStatus = document.getElementById("importExportStatus");
+const currencySymbolInput = document.getElementById("currencySymbolInput");
+const unitLabelInput = document.getElementById("unitLabelInput");
+const categoriesInput = document.getElementById("categoriesInput");
+const saveSettingsBtn = document.getElementById("saveSettingsBtn");
 
 const descInput = document.getElementById("description");
 const amountInput = document.getElementById("amount");
@@ -27,6 +31,60 @@ const sortHeaders = document.querySelectorAll("th[data-sort]");
 const toggleCaseBtn = document.getElementById("toggleCase");
 
 let caseInsensitive = true;
+let settings = loadSettings();
+
+function normalizeSettingsValue(raw, base = loadSettings()) {
+  if (!raw || typeof raw !== "object") {
+    return { ...base };
+  }
+
+  const currencySymbol = String(raw.currencySymbol ?? base.currencySymbol).trim();
+  const unitLabel = String(raw.unitLabel ?? base.unitLabel).trim();
+  const source = Array.isArray(raw.categories) ? raw.categories : base.categories;
+
+  const categories = source
+    .map(value => String(value).trim())
+    .filter(Boolean);
+
+  const deduped = [...new Set(categories)];
+  if (deduped.length === 0) {
+    return { error: "At least one category is required." };
+  }
+
+  const invalid = deduped.find(category => !validate("category", category));
+  if (invalid) {
+    return { error: `Invalid category: ${invalid}` };
+  }
+
+  return {
+    currencySymbol: currencySymbol || base.currencySymbol,
+    unitLabel: unitLabel || base.unitLabel,
+    categories: deduped
+  };
+}
+
+function formatMoney(value) {
+  const amount = Number(value) || 0;
+  const unitPart = settings.unitLabel ? ` ${settings.unitLabel}` : "";
+  return `${settings.currencySymbol}${amount.toFixed(2)}${unitPart}`;
+}
+
+function renderCategoryOptions(selectedValue = "") {
+  categoryInput.innerHTML = "";
+
+  settings.categories.forEach(category => {
+    const option = document.createElement("option");
+    option.value = category;
+    option.textContent = category;
+    categoryInput.appendChild(option);
+  });
+
+  if (selectedValue && settings.categories.includes(selectedValue)) {
+    categoryInput.value = selectedValue;
+  } else if (settings.categories.length > 0) {
+    categoryInput.value = settings.categories[0];
+  }
+}
 
 function isValidIsoDateTime(value) {
   if (typeof value !== "string") return false;
@@ -80,6 +138,7 @@ function normalizeImportedRecord(record, index) {
 function normalizeImportedPayload(payload) {
   let recordsSource = null;
   let cap = loadCap();
+  let importedSettings = settings;
 
   if (Array.isArray(payload)) {
     recordsSource = payload;
@@ -94,6 +153,13 @@ function normalizeImportedPayload(payload) {
       }
       cap = parsedCap;
     }
+    if ("settings" in payload) {
+      const normalizedSettings = normalizeSettingsValue(payload.settings, settings);
+      if (normalizedSettings.error) {
+        return { error: normalizedSettings.error };
+      }
+      importedSettings = normalizedSettings;
+    }
   }
 
   if (!Array.isArray(recordsSource)) {
@@ -107,6 +173,9 @@ function normalizeImportedPayload(payload) {
     const normalized = normalizeImportedRecord(recordsSource[i], i);
     if (normalized.error) return normalized;
     const record = normalized.record;
+    if (!importedSettings.categories.includes(record.category)) {
+      return { error: `Record ${i + 1}: category '${record.category}' is not in settings categories` };
+    }
     if (seenIds.has(record.id)) {
       return { error: `Record ${i + 1}: duplicate id '${record.id}'` };
     }
@@ -114,7 +183,7 @@ function normalizeImportedPayload(payload) {
     normalizedRecords.push(record);
   }
 
-  return { records: normalizedRecords, cap };
+  return { records: normalizedRecords, cap, settings: importedSettings };
 }
 
 function sortRecords(records) {
@@ -179,7 +248,7 @@ function render() {
 
     tr.innerHTML = `
       <td>${highlight(record.description, re)}</td>
-      <td>$${record.amount.toFixed(2)}</td>
+      <td>${formatMoney(record.amount)}</td>
       <td>${highlight(record.category, re)}</td>
       <td>${record.date}</td>
       <td>
@@ -197,17 +266,17 @@ function render() {
 function updateStats() {
   const total = state.records.reduce((sum, r) => sum + r.amount, 0);
   statsDiv.textContent =
-    `Total Records: ${state.records.length} | Total Spent: $${total.toFixed(2)}`;
+    `Total Records: ${state.records.length} | Total Spent: ${formatMoney(total)}`;
 
   const cap = loadCap();
 
   if (cap > 0) {
     if (total > cap) {
       capStatus.setAttribute("aria-live", "assertive");
-      capStatus.textContent = `Over cap by $${(total - cap).toFixed(2)}`;
+      capStatus.textContent = `Over cap by ${formatMoney(total - cap)}`;
     } else {
       capStatus.setAttribute("aria-live", "polite");
-      capStatus.textContent = `Remaining: $${(cap - total).toFixed(2)}`;
+      capStatus.textContent = `Remaining: ${formatMoney(cap - total)}`;
     }
   } else {
     capStatus.textContent = "";
@@ -224,7 +293,8 @@ form.addEventListener("submit", e => {
 
   const descValid = validate("description", description);
   const amountValid = validate("amount", amount);
-  const categoryValid = validate("category", category);
+  const categoryValid =
+    validate("category", category) && settings.categories.includes(category);
   const dateValid = validate("date", date);
 
   setFieldError(descInput, descError, descValid ? "" : "Invalid description");
@@ -303,6 +373,7 @@ exportJsonBtn.addEventListener("click", () => {
     version: 1,
     exportedAt: new Date().toISOString(),
     cap: loadCap(),
+    settings,
     records: state.records
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], {
@@ -341,7 +412,13 @@ importJsonInput.addEventListener("change", async e => {
     state.records = normalized.records;
     save(state.records);
     saveCap(normalized.cap);
+    settings = normalized.settings;
+    saveSettings(settings);
     capInput.value = normalized.cap;
+    currencySymbolInput.value = settings.currencySymbol;
+    unitLabelInput.value = settings.unitLabel;
+    categoriesInput.value = settings.categories.join(", ");
+    renderCategoryOptions();
     importExportStatus.textContent =
       `Import complete. Loaded ${normalized.records.length} record(s).`;
     render();
@@ -349,5 +426,31 @@ importJsonInput.addEventListener("change", async e => {
     importExportStatus.textContent = "Import failed: invalid JSON file.";
   }
 });
+
+saveSettingsBtn.addEventListener("click", () => {
+  const rawSettings = {
+    currencySymbol: currencySymbolInput.value,
+    unitLabel: unitLabelInput.value,
+    categories: categoriesInput.value.split(",")
+  };
+
+  const normalizedSettings = normalizeSettingsValue(rawSettings, settings);
+  if (normalizedSettings.error) {
+    importExportStatus.textContent = `Settings error: ${normalizedSettings.error}`;
+    return;
+  }
+
+  const previousCategory = categoryInput.value;
+  settings = normalizedSettings;
+  saveSettings(settings);
+  renderCategoryOptions(previousCategory);
+  importExportStatus.textContent = "Settings saved.";
+  render();
+});
+
+currencySymbolInput.value = settings.currencySymbol;
+unitLabelInput.value = settings.unitLabel;
+categoriesInput.value = settings.categories.join(", ");
+renderCategoryOptions();
 
 render();
