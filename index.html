@@ -67,12 +67,28 @@
       <tbody id="recordsTable"></tbody>
     </table>
   </section>
-    <section>
-        <h2>Settings</h2>
-        <label>Spending Cap
-            <input type="number" id="capInput" />
-        </label>
-    </section>
+   <section>
+    <h2>Settings</h2>
+    <label>Spending Cap
+      <input type="number" id="capInput" />
+    </label>
+    <label>Currency Symbol
+      <input type="text" id="currencySymbolInput" maxlength="5" />
+    </label>
+    <label>Units Label
+      <input type="text" id="unitLabelInput" maxlength="20" />
+    </label>
+    <label>Categories (comma separated)
+      <textarea id="categoriesInput" rows="3"></textarea>
+    </label>
+    <button type="button" id="saveSettingsBtn">Save Settings</button>
+    <div>
+      <button type="button" id="exportJsonBtn">Export JSON</button>
+      <button type="button" id="importJsonBtn">Import JSON</button>
+      <input type="file" id="importJsonInput" accept="application/json,.json" hidden />
+    </div>
+    <div id="importExportStatus" role="status" aria-live="polite"></div>
+  </section>
 </main>
 <footer>
   <p>Student Finance Tracker</p>

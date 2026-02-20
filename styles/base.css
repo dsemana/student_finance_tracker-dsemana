@@ -64,12 +64,15 @@ form label {
   margin-bottom: 1rem;
 }
 
-input {
+input,
+select,
+textarea {
   width: 100%;
   padding: 0.7rem;
   margin-top: 0.4rem;
   border-radius: var(--radius);
   border: 1px solid var(--border);
+  font: inherit;
 }
 
 button {
@@ -88,6 +91,8 @@ button.danger {
 
 button:focus-visible,
 input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
 th[data-sort]:focus-visible,
 a:focus-visible {
   outline: 3px solid #111827;

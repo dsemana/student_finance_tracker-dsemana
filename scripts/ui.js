@@ -1,5 +1,5 @@
 import { state } from "./state.js";
-import { save, loadCap, saveCap } from "./storage.js";
+import { save, loadCap, saveCap, loadSettings, saveSettings } from "./storage.js";
 import { validate, duplicateRegex } from "./validators.js";
 import { compileRegex, highlight } from "./search.js";
 
