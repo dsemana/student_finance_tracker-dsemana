@@ -1,5 +1,5 @@
 # Student Finance Tracker
-Here is the [Tutorial](https://youtu.be/8KBIe_j9GvU). 
+Here is the [Tutorial](https://youtu.be/3lu9axBGNEw). 
 Run it [here](https://dsemana.github.io/student_finance_tracker-dsemana).
 
 ## Chosen Theme

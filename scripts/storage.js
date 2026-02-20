@@ -12,12 +12,12 @@ const DEFAULT_SETTINGS = {
   currencySymbol: "$",
   unitLabel: "USD",
   categories: [
-    "Cafe Runs",
+    "Food",
+    "Books",
     "Transport",
-    "Print & Supplies",
-    "Club Events",
-    "Tuition/Admin",
-    "Misc"
+    "Entertainment",
+    "Fees",
+    "Other"
   ]
 };
 
