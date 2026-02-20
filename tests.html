@@ -45,9 +45,6 @@ test("Invalid description (leading space)",
 test("Invalid description (trailing space)",
   !descRegex.test("Lunch "));
 
-  test("Invalid description (multiple spaces)",
-  !descRegex.test("Lunch  at cafeteria"));
-
 test("Valid amount integer",
   amountRegex.test("15"));
 

@@ -29,9 +29,35 @@ const catError = document.getElementById("catError");
 const dateError = document.getElementById("dateError");
 const sortHeaders = document.querySelectorAll("th[data-sort]");
 const toggleCaseBtn = document.getElementById("toggleCase");
+const submitBtn = form.querySelector('button[type="submit"]');
 
 let caseInsensitive = true;
 let settings = loadSettings();
+let editingRecordId = null;
+
+function setFormMode(isEditing) {
+  submitBtn.textContent = isEditing ? "Update Transaction" : "Add Transaction";
+}
+
+function resetFormState() {
+  editingRecordId = null;
+  form.reset();
+  renderCategoryOptions();
+  setFormMode(false);
+}
+
+function startEditing(recordId) {
+  const record = state.records.find(item => item.id === recordId);
+  if (!record) return;
+
+  editingRecordId = record.id;
+  descInput.value = record.description;
+  amountInput.value = String(record.amount);
+  renderCategoryOptions(record.category);
+  dateInput.value = record.date;
+  setFormMode(true);
+  descInput.focus();
+}
 
 function normalizeSettingsValue(raw, base = loadSettings()) {
   if (!raw || typeof raw !== "object") {
@@ -252,6 +278,7 @@ function render() {
       <td>${highlight(record.category, re)}</td>
       <td>${record.date}</td>
       <td>
+        <button data-id="${record.id}" class="editBtn">Update</button>
         <button data-id="${record.id}" class="deleteBtn danger">Delete</button>
       </td>
     `;
@@ -314,25 +341,54 @@ form.addEventListener("submit", e => {
     alert("Duplicate consecutive word detected.");
   }
 
-  const record = {
-    id: "txn_" + Date.now(),
-    description,
-    amount: Number(amount),
-    category,
-    date,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  };
+  if (editingRecordId) {
+    const index = state.records.findIndex(record => record.id === editingRecordId);
+    if (index === -1) {
+      editingRecordId = null;
+      importExportStatus.textContent = "Update failed: record not found.";
+      setFormMode(false);
+      return;
+    }
 
-  state.records.push(record);
+    const existing = state.records[index];
+    state.records[index] = {
+      ...existing,
+      description,
+      amount: Number(amount),
+      category,
+      date,
+      updatedAt: new Date().toISOString()
+    };
+    importExportStatus.textContent = "Record updated.";
+  } else {
+    const record = {
+      id: "txn_" + Date.now(),
+      description,
+      amount: Number(amount),
+      category,
+      date,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    state.records.push(record);
+  }
+
   save(state.records);
-  form.reset();
+  resetFormState();
   render();
 });
 
 tableBody.addEventListener("click", e => {
+  if (e.target.classList.contains("editBtn")) {
+    startEditing(e.target.dataset.id);
+    return;
+  }
+
   if (e.target.classList.contains("deleteBtn")) {
     const id = e.target.dataset.id;
+    if (editingRecordId === id) {
+      resetFormState();
+    }
     state.records = state.records.filter(r => r.id !== id);
     save(state.records);
     render();
@@ -452,5 +508,6 @@ currencySymbolInput.value = settings.currencySymbol;
 unitLabelInput.value = settings.unitLabel;
 categoriesInput.value = settings.categories.join(", ");
 renderCategoryOptions();
+setFormMode(false);
 
 render();
