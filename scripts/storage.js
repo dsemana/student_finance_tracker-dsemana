@@ -1,16 +1,29 @@
-const KEY = "finance:data";
-const CAP_KEY = "finance:cap";
-const SETTINGS_KEY = "finance:settings";
+const KEY = "campus-ledger:records";
+const CAP_KEY = "campus-ledger:limit";
+const SETTINGS_KEY = "campus-ledger:prefs";
+
+const LEGACY_KEYS = {
+  records: "finance:data",
+  cap: "finance:cap",
+  settings: "finance:settings"
+};
 
 const DEFAULT_SETTINGS = {
   currencySymbol: "$",
   unitLabel: "USD",
-  categories: ["Food", "Books", "Transport", "Entertainment", "Fees", "Other"]
+  categories: [
+    "Cafe Runs",
+    "Transport",
+    "Print & Supplies",
+    "Club Events",
+    "Tuition/Admin",
+    "Misc"
+  ]
 };
 
 export function load() {
   try {
-    const data = JSON.parse(localStorage.getItem(KEY));
+    const data = JSON.parse(localStorage.getItem(KEY) ?? localStorage.getItem(LEGACY_KEYS.records));
     return Array.isArray(data) ? data : [];
   } catch {
     return [];
@@ -22,7 +35,7 @@ export function save(data) {
 }
 
 export function loadCap() {
-  const cap = Number(localStorage.getItem(CAP_KEY));
+  const cap = Number(localStorage.getItem(CAP_KEY) ?? localStorage.getItem(LEGACY_KEYS.cap));
   return isNaN(cap) ? 0 : cap;
 }
 
@@ -54,7 +67,7 @@ function normalizeSettings(raw) {
 
 export function loadSettings() {
   try {
-    const raw = JSON.parse(localStorage.getItem(SETTINGS_KEY));
+    const raw = JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? localStorage.getItem(LEGACY_KEYS.settings));
     return normalizeSettings(raw);
   } catch {
     return { ...DEFAULT_SETTINGS };

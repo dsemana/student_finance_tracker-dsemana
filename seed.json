@@ -1,0 +1,92 @@
+[
+  {
+    "id": "txn_0001",
+    "description": "Lunch at cafeteria",
+    "amount": 12.50,
+    "category": "Food",
+    "date": "2025-09-25",
+    "createdAt": "2025-09-25T12:30:00Z",
+    "updatedAt": "2025-09-25T12:30:00Z"
+  },
+  {
+    "id": "txn_0002",
+    "description": "Chemistry textbook",
+    "amount": 89.99,
+    "category": "Books",
+    "date": "2025-09-23",
+    "createdAt": "2025-09-23T10:00:00Z",
+    "updatedAt": "2025-09-23T10:00:00Z"
+  },
+  {
+    "id": "txn_0003",
+    "description": "Bus pass monthly",
+    "amount": 45.00,
+    "category": "Transport",
+    "date": "2025-09-20",
+    "createdAt": "2025-09-20T08:00:00Z",
+    "updatedAt": "2025-09-20T08:00:00Z"
+  },
+  {
+    "id": "txn_0004",
+    "description": "Coffee coffee break",
+    "amount": 8.75,
+    "category": "Entertainment",
+    "date": "2025-09-28",
+    "createdAt": "2025-09-28T15:15:00Z",
+    "updatedAt": "2025-09-28T15:15:00Z"
+  },
+  {
+    "id": "txn_0005",
+    "description": "Semester registration fee",
+    "amount": 1200.00,
+    "category": "Fees",
+    "date": "2025-09-01",
+    "createdAt": "2025-09-01T09:00:00Z",
+    "updatedAt": "2025-09-01T09:00:00Z"
+  },
+  {
+    "id": "txn_0006",
+    "description": "Notebook and pens",
+    "amount": 5.20,
+    "category": "Books",
+    "date": "2025-09-18",
+    "createdAt": "2025-09-18T14:00:00Z",
+    "updatedAt": "2025-09-18T14:00:00Z"
+  },
+  {
+    "id": "txn_0007",
+    "description": "Movie night",
+    "amount": 15,
+    "category": "Entertainment",
+    "date": "2025-09-27",
+    "createdAt": "2025-09-27T19:30:00Z",
+    "updatedAt": "2025-09-27T19:30:00Z"
+  },
+  {
+    "id": "txn_0008",
+    "description": "Campus parking permit",
+    "amount": 150.75,
+    "category": "Transport",
+    "date": "2025-08-31",
+    "createdAt": "2025-08-31T11:00:00Z",
+    "updatedAt": "2025-08-31T11:00:00Z"
+  },
+  {
+    "id": "txn_0009",
+    "description": "Tea with classmates",
+    "amount": 3.50,
+    "category": "Food",
+    "date": "2025-09-29",
+    "createdAt": "2025-09-29T16:00:00Z",
+    "updatedAt": "2025-09-29T16:00:00Z"
+  },
+  {
+    "id": "txn_0010",
+    "description": "Emergency medical expense",
+    "amount": 2500.99,
+    "category": "Other",
+    "date": "2025-09-15",
+    "createdAt": "2025-09-15T07:45:00Z",
+    "updatedAt": "2025-09-15T07:45:00Z"
+  }
+]

@@ -28,7 +28,7 @@ import {
 import { compileRegex } from "./scripts/search.js";
 
 const resultsDiv = document.getElementById("results");
-
+// testing function
 function test(name, condition) {
   const p = document.createElement("p");
   p.textContent = name + " → " + (condition ? "PASS" : "FAIL");
@@ -36,6 +36,7 @@ function test(name, condition) {
   resultsDiv.appendChild(p);
 }
 
+// tests
 test("Valid description",
   descRegex.test("Lunch at cafeteria"));
 
@@ -87,7 +88,7 @@ test("Invalid regex safely fails",
 function validateRecordStructure(record) {
   return (
     typeof record.id === "string" &&
-    typeof record.description === "string" &&
+    typeof record.des === "string" &&
     typeof record.amount === "number" &&
     typeof record.category === "string" &&
     typeof record.date === "string" &&
@@ -98,7 +99,7 @@ function validateRecordStructure(record) {
 
 const validRecord = {
   id: "txn_1",
-  description: "Lunch",
+  des: "Lunch",
   amount: 12.5,
   category: "Food",
   date: "2025-09-29",
@@ -108,7 +109,7 @@ const validRecord = {
 
 const invalidRecord = {
   id: 1,
-  description: "Lunch",
+  des: "Lunch",
   amount: "12.5"
 };
 

@@ -3,32 +3,32 @@ import { save, loadCap, saveCap, loadSettings, saveSettings } from "./storage.js
 import { validate, duplicateRegex } from "./validators.js";
 import { compileRegex, highlight } from "./search.js";
 
-const form = document.getElementById("txnForm");
-const tableBody = document.getElementById("recordsTable");
-const statsDiv = document.getElementById("stats");
-const searchInput = document.getElementById("searchInput");
-const capInput = document.getElementById("capInput");
-const capStatus = document.getElementById("capStatus");
-const exportJsonBtn = document.getElementById("exportJsonBtn");
-const importJsonBtn = document.getElementById("importJsonBtn");
-const importJsonInput = document.getElementById("importJsonInput");
-const importExportStatus = document.getElementById("importExportStatus");
-const currencySymbolInput = document.getElementById("currencySymbolInput");
-const unitLabelInput = document.getElementById("unitLabelInput");
-const categoriesInput = document.getElementById("categoriesInput");
-const saveSettingsBtn = document.getElementById("saveSettingsBtn");
+const form = document.getElementById("spendEntryForm");
+const tableBody = document.getElementById("ledgerRows");
+const statsDiv = document.getElementById("monthSnapshot");
+const searchInput = document.getElementById("ledgerSearch");
+const capInput = document.getElementById("monthlyLimitInput");
+const capStatus = document.getElementById("budgetPulse");
+const exportJsonBtn = document.getElementById("exportBackupBtn");
+const importJsonBtn = document.getElementById("importBackupBtn");
+const importJsonInput = document.getElementById("importBackupInput");
+const importExportStatus = document.getElementById("dataOpsStatus");
+const currencySymbolInput = document.getElementById("symbolInput");
+const unitLabelInput = document.getElementById("currencyCodeInput");
+const categoriesInput = document.getElementById("bucketListInput");
+const saveSettingsBtn = document.getElementById("savePrefsBtn");
 
-const descInput = document.getElementById("description");
-const amountInput = document.getElementById("amount");
-const categoryInput = document.getElementById("category");
-const dateInput = document.getElementById("date");
+const descInput = document.getElementById("purchaseNote");
+const amountInput = document.getElementById("costValue");
+const categoryInput = document.getElementById("spendBucket");
+const dateInput = document.getElementById("spentOn");
 
-const descError = document.getElementById("descError");
-const amountError = document.getElementById("amountError");
-const catError = document.getElementById("catError");
-const dateError = document.getElementById("dateError");
+const descError = document.getElementById("purchaseNoteHint");
+const amountError = document.getElementById("costHint");
+const catError = document.getElementById("bucketHint");
+const dateError = document.getElementById("dateHint");
 const sortHeaders = document.querySelectorAll("th[data-sort]");
-const toggleCaseBtn = document.getElementById("toggleCase");
+const toggleCaseBtn = document.getElementById("matchCaseToggle");
 const submitBtn = form.querySelector('button[type="submit"]');
 
 let caseInsensitive = true;
@@ -36,7 +36,7 @@ let settings = loadSettings();
 let editingRecordId = null;
 
 function setFormMode(isEditing) {
-  submitBtn.textContent = isEditing ? "Update Transaction" : "Add Transaction";
+  submitBtn.textContent = isEditing ? "Update Entry" : "Save Entry";
 }
 
 function resetFormState() {
@@ -150,7 +150,7 @@ function normalizeImportedRecord(record, index) {
     record: {
       id: typeof record.id === "string" && record.id.trim()
         ? record.id.trim()
-        : `txn_import_${Date.now()}_${index}`,
+        : `ledger_import_${Date.now()}_${index}`,
       description,
       amount,
       category,
@@ -266,7 +266,7 @@ function render() {
 
   if (filtered.length === 0) {
     tableBody.innerHTML =
-      `<tr><td colspan="5" class="empty">No records found</td></tr>`;
+      `<tr><td colspan="5" class="empty">No entries match this search</td></tr>`;
   }
 
   filtered.forEach(record => {
@@ -293,17 +293,17 @@ function render() {
 function updateStats() {
   const total = state.records.reduce((sum, r) => sum + r.amount, 0);
   statsDiv.textContent =
-    `Total Records: ${state.records.length} | Total Spent: ${formatMoney(total)}`;
+    `Entries this view: ${state.records.length} | Money out: ${formatMoney(total)}`;
 
   const cap = loadCap();
 
   if (cap > 0) {
     if (total > cap) {
       capStatus.setAttribute("aria-live", "assertive");
-      capStatus.textContent = `Over cap by ${formatMoney(total - cap)}`;
+      capStatus.textContent = `Over your limit by ${formatMoney(total - cap)}`;
     } else {
       capStatus.setAttribute("aria-live", "polite");
-      capStatus.textContent = `Remaining: ${formatMoney(cap - total)}`;
+      capStatus.textContent = `Left in budget: ${formatMoney(cap - total)}`;
     }
   } else {
     capStatus.textContent = "";
@@ -324,10 +324,10 @@ form.addEventListener("submit", e => {
     validate("category", category) && settings.categories.includes(category);
   const dateValid = validate("date", date);
 
-  setFieldError(descInput, descError, descValid ? "" : "Invalid description");
-  setFieldError(amountInput, amountError, amountValid ? "" : "Invalid amount");
-  setFieldError(categoryInput, catError, categoryValid ? "" : "Invalid category");
-  setFieldError(dateInput, dateError, dateValid ? "" : "Invalid date");
+  setFieldError(descInput, descError, descValid ? "" : "Add a short, clear note");
+  setFieldError(amountInput, amountError, amountValid ? "" : "Use a valid amount (e.g. 12.50)");
+  setFieldError(categoryInput, catError, categoryValid ? "" : "Pick one of your saved buckets");
+  setFieldError(dateInput, dateError, dateValid ? "" : "Use YYYY-MM-DD");
 
   if (!descValid || !amountValid || !categoryValid || !dateValid) {
     if (!descValid) descInput.focus();
@@ -338,14 +338,14 @@ form.addEventListener("submit", e => {
   }
 
   if (duplicateRegex.test(description)) {
-    alert("Duplicate consecutive word detected.");
+    alert("Quick heads-up: you repeated the same word twice.");
   }
 
   if (editingRecordId) {
     const index = state.records.findIndex(record => record.id === editingRecordId);
     if (index === -1) {
       editingRecordId = null;
-      importExportStatus.textContent = "Update failed: record not found.";
+      importExportStatus.textContent = "Update failed: entry no longer exists.";
       setFormMode(false);
       return;
     }
@@ -359,10 +359,10 @@ form.addEventListener("submit", e => {
       date,
       updatedAt: new Date().toISOString()
     };
-    importExportStatus.textContent = "Record updated.";
+    importExportStatus.textContent = "Entry updated.";
   } else {
     const record = {
-      id: "txn_" + Date.now(),
+      id: "ledger_" + Date.now(),
       description,
       amount: Number(amount),
       category,
@@ -415,6 +415,7 @@ searchInput.addEventListener("input", render);
 toggleCaseBtn.addEventListener("click", () => {
   caseInsensitive = !caseInsensitive;
   toggleCaseBtn.setAttribute("aria-pressed", caseInsensitive ? "true" : "false");
+  toggleCaseBtn.textContent = caseInsensitive ? "Matching: Ignore Case" : "Matching: Match Case";
   render();
 });
 
@@ -438,12 +439,12 @@ exportJsonBtn.addEventListener("click", () => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `finance-tracker-export-${new Date().toISOString().slice(0, 10)}.json`;
+  a.download = `campus-money-log-backup-${new Date().toISOString().slice(0, 10)}.json`;
   document.body.appendChild(a);
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
-  importExportStatus.textContent = "Export complete.";
+  importExportStatus.textContent = "Backup exported.";
 });
 
 importJsonBtn.addEventListener("click", () => {
@@ -476,10 +477,10 @@ importJsonInput.addEventListener("change", async e => {
     categoriesInput.value = settings.categories.join(", ");
     renderCategoryOptions();
     importExportStatus.textContent =
-      `Import complete. Loaded ${normalized.records.length} record(s).`;
+      `Import complete. Loaded ${normalized.records.length} entr${normalized.records.length === 1 ? "y" : "ies"}.`;
     render();
   } catch {
-    importExportStatus.textContent = "Import failed: invalid JSON file.";
+    importExportStatus.textContent = "Import failed: that file is not valid JSON.";
   }
 });
 
@@ -492,7 +493,7 @@ saveSettingsBtn.addEventListener("click", () => {
 
   const normalizedSettings = normalizeSettingsValue(rawSettings, settings);
   if (normalizedSettings.error) {
-    importExportStatus.textContent = `Settings error: ${normalizedSettings.error}`;
+    importExportStatus.textContent = `Preference error: ${normalizedSettings.error}`;
     return;
   }
 
@@ -500,7 +501,7 @@ saveSettingsBtn.addEventListener("click", () => {
   settings = normalizedSettings;
   saveSettings(settings);
   renderCategoryOptions(previousCategory);
-  importExportStatus.textContent = "Settings saved.";
+  importExportStatus.textContent = "Preferences saved.";
   render();
 });
 
@@ -509,5 +510,6 @@ unitLabelInput.value = settings.unitLabel;
 categoriesInput.value = settings.categories.join(", ");
 renderCategoryOptions();
 setFormMode(false);
+toggleCaseBtn.textContent = caseInsensitive ? "Matching: Ignore Case" : "Matching: Match Case";
 
 render();
