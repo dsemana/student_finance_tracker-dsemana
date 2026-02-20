@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finance Tracker Tests</title>
+<style>
+body { font-family: monospace; padding: 20px; }
+.pass { color: green; }
+.fail { color: red; }
+</style>
+</head>
+<body>
+
+<h1>Finance Tracker Regex & Validation Tests</h1>
+<div id="results"></div>
+
+<script type="module">
+
+import {
+  descRegex,
+  amountRegex,
+  dateRegex,
+  categoryRegex,
+  duplicateRegex
+} from "./scripts/validators.js";
+
+import { compileRegex } from "./scripts/search.js";
+
+const resultsDiv = document.getElementById("results");
+
+function test(name, condition) {
+  const p = document.createElement("p");
+  p.textContent = name + " → " + (condition ? "PASS" : "FAIL");
+  p.className = condition ? "pass" : "fail";
+  resultsDiv.appendChild(p);
+}
+
+test("Valid description",
+  descRegex.test("Lunch at cafeteria"));
+
+test("Invalid description (leading space)",
+  !descRegex.test(" Lunch"));
+
+test("Invalid description (trailing space)",
+  !descRegex.test("Lunch "));
+
+  test("Invalid description (multiple spaces)",
+  !descRegex.test("Lunch  at cafeteria"));
+
+test("Valid amount integer",
+  amountRegex.test("15"));
+
+test("Valid amount decimal",
+  amountRegex.test("12.50"));
+
+test("Invalid amount (3 decimals)",
+  !amountRegex.test("12.345"));
+
+test("Invalid amount (leading zero)",
+  !amountRegex.test("012"));
+
+test("Valid date",
+  dateRegex.test("2025-09-29"));
+
+test("Invalid month",
+  !dateRegex.test("2025-13-10"));
+
+test("Invalid day",
+  !dateRegex.test("2025-09-32"));
+
+test("Valid category",
+  categoryRegex.test("Bus Pass"));
+
+test("Invalid category (numbers)",
+  !categoryRegex.test("Food123"));
+
+test("Duplicate word detected",
+  duplicateRegex.test("coffee coffee"));
+
+test("No duplicate word",
+  !duplicateRegex.test("coffee tea"));
+
+test("Valid regex compiles",
+  compileRegex("\\d+") !== null);
+
+test("Invalid regex safely fails",
+  compileRegex("(") === null);
+
+function validateRecordStructure(record) {
+  return (
+    typeof record.id === "string" &&
+    typeof record.description === "string" &&
+    typeof record.amount === "number" &&
+    typeof record.category === "string" &&
+    typeof record.date === "string" &&
+    "createdAt" in record &&
+    "updatedAt" in record
+  );
+}
+
+const validRecord = {
+  id: "txn_1",
+  description: "Lunch",
+  amount: 12.5,
+  category: "Food",
+  date: "2025-09-29",
+  createdAt: "2025-09-29T10:00:00Z",
+  updatedAt: "2025-09-29T10:00:00Z"
+};
+
+const invalidRecord = {
+  id: 1,
+  description: "Lunch",
+  amount: "12.5"
+};
+
+test("Valid record structure",
+  validateRecordStructure(validRecord));
+
+test("Invalid record structure rejected",
+  !validateRecordStructure(invalidRecord));
+
+</script>
+
+</body>
+</html>
