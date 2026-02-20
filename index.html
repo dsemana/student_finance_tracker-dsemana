@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Student Finance Tracker</title>
+<link rel="stylesheet" href="styles/base.css" />
+</head>
+<body>
+<a class="skip-link" href="#mainContent">Skip to main content</a>
+<header>
+  <h1>Student Finance Tracker</h1>
+</header>
+<main id="mainContent">
+  <section>
+    <h2>Dashboard</h2>
+    <div id="stats" role="status" aria-live="polite"></div>
+    <div id="capStatus" role="status" aria-live="polite"></div>
+  </section>
+
+  <section>
+    <h2>Add Transaction</h2>
+
+    <form id="txnForm" novalidate>
+      <label>Description
+        <input type="text" id="description" aria-describedby="descError" required />
+        <span class="error" id="descError" role="alert"></span>
+      </label>
+
+      <label>Amount
+        <input type="text" id="amount" aria-describedby="amountError" required />
+        <span class="error" id="amountError" role="alert"></span>
+      </label>
+
+      <label>Category
+        <input type="text" id="category" aria-describedby="catError" required />
+        <span class="error" id="catError" role="alert"></span>
+      </label>
+
+      <label>Date
+        <input type="text" id="date" placeholder="YYYY-MM-DD" aria-describedby="dateError" required />
+        <span class="error" id="dateError" role="alert"></span>
+      </label>
+
+      <button type="submit">Add Transaction</button>
+    </form>
+  </section>
+
+  <section>
+    <h2>Records</h2>
+
+    <label class="sr-only" for="searchInput">Search records by regex</label>
+    <input type="text" id="searchInput" placeholder="Regex search..." />
+    <button id="toggleCase" aria-pressed="true">Toggle Case</button>
+
+    <table>
+      <caption class="sr-only">Transaction records with sortable columns</caption>
+      <thead>
+        <tr>
+          <th data-sort="description" aria-sort="none">Description</th>
+          <th data-sort="amount" aria-sort="none">Amount</th>
+          <th data-sort="category" aria-sort="none">Category</th>
+          <th data-sort="date" aria-sort="none">Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="recordsTable"></tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Settings</h2>
+    <label>Spending Cap
+      <input type="number" id="capInput" />
+    </label>
+    <div>
+      <button type="button" id="exportJsonBtn">Export JSON</button>
+      <button type="button" id="importJsonBtn">Import JSON</button>
+      <input type="file" id="importJsonInput" accept="application/json,.json" hidden />
+    </div>
+    <div id="importExportStatus" role="status" aria-live="polite"></div>
+  </section>
+</main>
+<footer>
+  <p>Student Finance Tracker</p>
+</footer>
+</body>
+</html>
